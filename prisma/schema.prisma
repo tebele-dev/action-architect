@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String
+  name          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  plans         ActionPlan[]
+  chatSessions  ChatSession[]
+}
+
+model ActionPlan {
+  id            String    @id @default(uuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  originalInput String    @db.Text
+  status        String    @default("active")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  steps         Step[]
+}
+
+model Step {
+  id            String      @id @default(uuid())
+  planId        String
+  plan          ActionPlan  @relation(fields: [planId], references: [id])
+  stepNumber    Int
+  action        String      @db.Text
+  why           String      @db.Text
+  priority      Int         @default(0)
+  completed     Boolean     @default(false)
+  hoursSpent    Float       @default(0)
+  timeEntries   TimeEntry[]
+  chatSessions  ChatSession[]
+}
+
+model TimeEntry {
+  id        String   @id @default(uuid())
+  stepId    String
+  step      Step     @relation(fields: [stepId], references: [id])
+  hours     Float
+  date      DateTime @default(now())
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+}
+
+model ChatSession {
+  id        String        @id @default(uuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id])
+  stepId    String?
+  step      Step?         @relation(fields: [stepId], references: [id])
+  messages  ChatMessage[]
+  createdAt DateTime      @default(now())
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id])
+  role      String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+}

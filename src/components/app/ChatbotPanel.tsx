@@ -4,23 +4,28 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Bot, Send, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 export function ChatbotPanel() {
-  const { chatOpen, setChatOpen, messages, sendMessage, selectedStepId, steps, setSelectedStepId, clearChat } = useStore();
+  const {
+    chatOpen,
+    setChatOpen,
+    messages,
+    sendMessage,
+    selectedStepId,
+    steps,
+    setSelectedStepId,
+    clearChat,
+  } = useStore();
   const [text, setText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const ctxStep = steps.find((s) => s.id === selectedStepId) ?? null;
-
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, chatOpen]);
-
   const submit = () => {
     if (!text.trim()) return;
     sendMessage(text.trim());
     setText("");
   };
-
   return (
     <Sheet open={chatOpen} onOpenChange={setChatOpen}>
       <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-md">
@@ -30,8 +35,10 @@ export function ChatbotPanel() {
               <Bot className="size-4" />
             </div>
             <div className="flex flex-col text-left">
-              <span className="text-sm font-semibold">Research copilot</span>
-              <span className="text-xs font-normal text-muted-foreground">Mock assistant · no backend</span>
+              <span className="text-sm font-semibold">Research architect</span>
+              <span className="text-xs font-normal text-muted-foreground">
+                AI assistant · backend powered
+              </span>
             </div>
           </SheetTitle>
         </SheetHeader>
@@ -77,7 +84,10 @@ export function ChatbotPanel() {
             <span className="text-xs text-muted-foreground">
               {ctxStep ? "Asking about selected step" : "General question"}
             </span>
-            <button onClick={clearChat} className="text-xs text-muted-foreground hover:text-foreground">
+            <button
+              onClick={clearChat}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
               Clear
             </button>
           </div>

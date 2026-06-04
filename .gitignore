@@ -1,32 +1,108 @@
-# Logs
-logs
-*.log
+# ============================================================================
+# Dependencies
+# ============================================================================
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-node_modules
-dist
-dist-ssr
+# ============================================================================
+# Build Output & Distribution
+# ============================================================================
+dist/
+dist-ssr/
+build/
 .output
 .vinxi
 .tanstack/**
 .nitro
-*.local
+out/
 
-# Wrangler / Cloudflare
-.wrangler/
-.dev.vars
+# ============================================================================
+# Environment & Secrets
+# ============================================================================
+.env
+.env.local
+.env.*.local
+.env.test.local
+.env.production.local
 
-# Editor directories and files
+# ============================================================================
+# IDE & Editor Configuration
+# ============================================================================
 .vscode/*
 !.vscode/extensions.json
-.idea
+!.vscode/settings.json
+!.vscode/launch.json
+.idea/
 .DS_Store
+*.swp
+*.swo
+*.sw?
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
+*.VC.db
+*.sublime-workspace
+*.sublime-project
+
+# ============================================================================
+# OS Files
+# ============================================================================
+Thumbs.db
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# ============================================================================
+# Logs
+# ============================================================================
+logs/
+*.log
+lerna-debug.log
+
+# ============================================================================
+# Temporary Files
+# ============================================================================
+*.local
+tmp/
+temp/
+.cache/
+
+# ============================================================================
+# Development Tools
+# ============================================================================
+# Wrangler / Cloudflare
+.wrangler/
+.dev.vars
+
+# Docker
+docker-compose.override.yml
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+
+# ============================================================================
+# IDE Workspaces
+# ============================================================================
+.vscode-test
+*.code-workspace
+
+# ============================================================================
+# OS & System Files
+# ============================================================================
+.vscode
+.DS_Store
+.env
+.env.local

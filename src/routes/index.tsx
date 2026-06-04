@@ -7,32 +7,33 @@ import { PlanInputDialog } from "@/components/app/PlanInputDialog";
 import { ChatbotPanel } from "@/components/app/ChatbotPanel";
 import { Button } from "@/components/ui/button";
 import { Bot, Sparkles, Inbox, ListFilter } from "lucide-react";
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Research Achuz — Plan, prioritize, ship" },
-      { name: "description", content: "Turn unstructured plans into prioritized action steps and track hours per day." },
-      { property: "og:title", content: "Research Achuz" },
-      { property: "og:description", content: "Turn unstructured plans into prioritized action steps." },
+      { title: "Action Architect — Plan, prioritize, ship" },
+      {
+        name: "description",
+        content: "Turn unstructured plans into prioritized action steps and track hours per day.",
+      },
+      { property: "og:title", content: "Action Architect" },
+      {
+        property: "og:description",
+        content: "Turn unstructured plans into prioritized action steps.",
+      },
     ],
   }),
   component: Index,
 });
-
 type Filter = "all" | "active" | "done";
-
 function Index() {
   const { steps, setChatOpen } = useStore();
   const [filter, setFilter] = useState<Filter>("all");
-
   const visible = useMemo(() => {
     const sorted = [...steps].sort((a, b) => a.priority - b.priority || a.step - b.step);
     if (filter === "active") return sorted.filter((s) => !s.completed);
     if (filter === "done") return sorted.filter((s) => s.completed);
     return sorted;
   }, [steps, filter]);
-
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
@@ -42,13 +43,13 @@ function Index() {
               <Sparkles className="size-4" />
             </div>
             <div className="leading-tight">
-              <div className="text-sm font-semibold tracking-tight">Research Achuz</div>
+              <div className="text-sm font-semibold tracking-tight">Action Architect</div>
               <div className="text-[11px] text-muted-foreground">Plan · Prioritize · Track</div>
             </div>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => setChatOpen(true)}>
-              <Bot className="size-4" /> Copilot
+              <Bot className="size-4" /> Architect
             </Button>
             <PlanInputDialog />
           </div>
@@ -60,7 +61,8 @@ function Index() {
           <div className="mb-4 flex flex-col gap-1">
             <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Today's plan</h1>
             <p className="text-sm text-muted-foreground">
-              Your structured action plan, sorted by priority. Click any step to edit, complete, or ask the copilot.
+              Your structured action plan, sorted by priority. Click any step to edit, complete, or
+              ask the architect.
             </p>
           </div>
           <ProgressOverview />

@@ -10,25 +10,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2, Wand2 } from "lucide-react";
 import { useStore } from "@/lib/store";
-
 const EXAMPLES = [
   "I want to research how spaced repetition affects retention for medical students.",
   "Launch a small newsletter about climate-tech startups within 6 weeks.",
   "Investigate whether short-form video improves onboarding completion in our app.",
 ];
-
 export function PlanInputDialog({ trigger }: { trigger?: React.ReactNode }) {
   const { generateFromText, generating } = useStore();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
-
   const submit = async () => {
     if (!text.trim()) return;
     await generateFromText(text);
     setOpen(false);
     setText("");
   };
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -46,7 +42,8 @@ export function PlanInputDialog({ trigger }: { trigger?: React.ReactNode }) {
             Turn your plan into action
           </DialogTitle>
           <DialogDescription>
-            Paste a rough idea, project goal, or stream-of-thought. We'll structure it into prioritized steps.
+            Paste a rough idea, project goal, or stream-of-thought. We'll structure it into
+            prioritized steps.
           </DialogDescription>
         </DialogHeader>
         <textarea

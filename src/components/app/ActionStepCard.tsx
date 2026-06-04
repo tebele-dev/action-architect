@@ -15,13 +15,17 @@ import {
   ArrowDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const priorityMeta: Record<number, { label: string; cls: string }> = {
+const priorityMeta: Record<
+  number,
+  {
+    label: string;
+    cls: string;
+  }
+> = {
   1: { label: "P1 · High", cls: "bg-[oklch(0.95_0.06_25)] text-[oklch(0.42_0.18_25)]" },
   2: { label: "P2 · Med", cls: "bg-[oklch(0.96_0.06_70)] text-[oklch(0.42_0.14_70)]" },
   3: { label: "P3 · Low", cls: "bg-[oklch(0.95_0.06_160)] text-[oklch(0.4_0.12_160)]" },
 };
-
 export function ActionStepCard({ s }: { s: ActionStep }) {
   const {
     toggleComplete,
@@ -39,12 +43,10 @@ export function ActionStepCard({ s }: { s: ActionStep }) {
   const [draftWhy, setDraftWhy] = useState(s.why);
   const meta = priorityMeta[s.priority] ?? priorityMeta[3];
   const isSelected = selectedStepId === s.id;
-
   const saveEdit = () => {
     updateStep(s.id, { action: draftAction.trim() || s.action, why: draftWhy.trim() || s.why });
     setEditing(false);
   };
-
   return (
     <Card
       className={cn(
@@ -139,13 +141,31 @@ export function ActionStepCard({ s }: { s: ActionStep }) {
             </div>
 
             <div className="ml-auto flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-              <Button size="icon" variant="ghost" className="size-7" onClick={() => reorder(s.id, "up")} title="Move up">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-7"
+                onClick={() => reorder(s.id, "up")}
+                title="Move up"
+              >
                 <ArrowUp className="size-3.5" />
               </Button>
-              <Button size="icon" variant="ghost" className="size-7" onClick={() => reorder(s.id, "down")} title="Move down">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-7"
+                onClick={() => reorder(s.id, "down")}
+                title="Move down"
+              >
                 <ArrowDown className="size-3.5" />
               </Button>
-              <Button size="icon" variant="ghost" className="size-7" onClick={() => setEditing(true)} title="Edit">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-7"
+                onClick={() => setEditing(true)}
+                title="Edit"
+              >
                 <Pencil className="size-3.5" />
               </Button>
               <Button
@@ -156,7 +176,7 @@ export function ActionStepCard({ s }: { s: ActionStep }) {
                   setSelectedStepId(s.id);
                   setChatOpen(true);
                 }}
-                title="Ask copilot"
+                title="Ask architect"
               >
                 <MessageCircle className="size-3.5" />
               </Button>

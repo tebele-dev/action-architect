@@ -1,21 +1,23 @@
 import { useStore } from "@/lib/store";
 import { Card } from "@/components/ui/card";
 import { CheckCircle2, Clock, Target, TrendingUp } from "lucide-react";
-
 export function ProgressOverview() {
   const { steps } = useStore();
   const total = steps.length;
   const done = steps.filter((s) => s.completed).length;
   const hours = steps.reduce((a, s) => a + s.hoursSpent, 0);
   const pct = total ? Math.round((done / total) * 100) : 0;
-
   const tiles = [
     { icon: Target, label: "Completion", value: `${pct}%`, sub: `${done}/${total} steps` },
     { icon: CheckCircle2, label: "Done", value: `${done}`, sub: `${total - done} remaining` },
     { icon: Clock, label: "Hours", value: hours.toFixed(1), sub: "logged across plan" },
-    { icon: TrendingUp, label: "Avg / step", value: total ? (hours / total).toFixed(1) : "0.0", sub: "hours per item" },
+    {
+      icon: TrendingUp,
+      label: "Avg / step",
+      value: total ? (hours / total).toFixed(1) : "0.0",
+      sub: "hours per item",
+    },
   ];
-
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       {tiles.map((t) => (
