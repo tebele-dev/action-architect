@@ -1,7 +1,7 @@
 import express from "express";
-import { prisma } from "../prisma";
-import { generatePlanFromInput } from "../services/openai";
-import { getGuestUser } from "../utils/guestUser";
+import { prisma } from "../prisma.js";
+import { generatePlanFromInput } from "../services/openai.js";
+import { getGuestUser } from "../utils/guestUser.js";
 const router = express.Router();
 function mapStep(step: any) {
   return {

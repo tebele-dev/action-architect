@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
-import { prisma } from "../prisma";
-import { getEnvConfigUnsafe } from "../lib/env.server";
+import { prisma } from "../prisma.js";
+import { getEnvConfigUnsafe } from "../lib/env.server.js";
 const { GUEST_USER_EMAIL, GUEST_USER_NAME, GUEST_USER_PASSWORD } = getEnvConfigUnsafe();
 const GUEST_EMAIL = GUEST_USER_EMAIL || "guest@action-architect.local";
 const GUEST_NAME = GUEST_USER_NAME || "Guest User";

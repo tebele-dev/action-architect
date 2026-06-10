@@ -1,18 +1,20 @@
 import { Worker, Job } from "bullmq";
 import IORedis from "ioredis";
 import dotenv from "dotenv";
-import { generatePlanFromInput } from "../services/openai";
-import { prisma } from "../prisma";
-import { ioClientNotify } from "../workers/notifyClient";
-import { getEnvConfig } from "../lib/env.server";
+import { generatePlanFromInput } from "../services/openai.js";
+import { prisma } from "../prisma.js";
+import { ioClientNotify } from "../workers/notifyClient.js";
+import { getEnvConfig } from "../lib/env.server.js";
 dotenv.config();
 const { REDIS_HOST, REDIS_PORT, REDIS_PASSWORD } = getEnvConfig();
-const connection = new IORedis({
+const Redis = (IORedis as any).default || IORedis;
+const connection = new Redis({
   host: REDIS_HOST,
   port: REDIS_PORT,
   ...(REDIS_PASSWORD && { password: REDIS_PASSWORD }),
   maxRetriesPerRequest: null,
 });
+
 const worker = new Worker(
   "ai-generation",
   async (job: Job) => {

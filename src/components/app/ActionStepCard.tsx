@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { ActionStep, useStore } from "@/lib/store";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
+import { ActionStep, useStore } from "@/lib/store.js";
+import { Card } from "@/components/ui/card.js";
+import { Button } from "@/components/ui/button.js";
+import { Input } from "@/components/ui/input.js";
+import { Checkbox } from "@/components/ui/checkbox.js";
 import {
   ChevronDown,
   ChevronUp,
@@ -14,7 +14,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils.js";
 const priorityMeta: Record<
   number,
   {

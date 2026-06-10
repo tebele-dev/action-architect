@@ -1,10 +1,10 @@
 import express from "express";
 import { z } from "zod";
 import bcrypt from "bcrypt";
-import { prisma } from "../prisma";
-import { signAccessToken, signRefreshToken } from "../utils/jwt";
-import { validateBody } from "../middleware/validators";
-import { jwtAuth, AuthRequest } from "../middleware/auth";
+import { prisma } from "../prisma.js";
+import { signAccessToken, signRefreshToken } from "../utils/jwt.js";
+import { validateBody } from "../middleware/validators.js";
+import { jwtAuth, AuthRequest } from "../middleware/auth.js";
 const router = express.Router();
 const registerSchema = z.object({
   email: z.string().email(),

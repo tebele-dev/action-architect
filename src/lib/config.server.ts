@@ -1,4 +1,4 @@
-import { getEnvConfig } from "./env.server";
+import { getEnvConfig } from "./env.server.js";
 export function getServerConfig() {
   const envConfig = getEnvConfig();
   return {

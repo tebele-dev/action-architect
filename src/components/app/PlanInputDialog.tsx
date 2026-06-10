@@ -6,10 +6,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+} from "@/components/ui/dialog.js";
+import { Button } from "@/components/ui/button.js";
 import { Sparkles, Loader2, Wand2 } from "lucide-react";
-import { useStore } from "@/lib/store";
+import { useStore } from "@/lib/store.js";
 const EXAMPLES = [
   "I want to research how spaced repetition affects retention for medical students.",
   "Launch a small newsletter about climate-tech startups within 6 weeks.",

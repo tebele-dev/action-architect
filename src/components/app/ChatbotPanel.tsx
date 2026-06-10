@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { useStore } from "@/lib/store";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useStore } from "@/lib/store.js";
+import { Button } from "@/components/ui/button.js";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet.js";
 import { Bot, Send, Sparkles, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils.js";
 export function ChatbotPanel() {
   const {
     chatOpen,

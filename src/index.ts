@@ -1,8 +1,8 @@
 import { createServer } from "http";
 import { Server } from "socket.io";
 import dotenv from "dotenv";
-import { app } from "./app";
-import { getEnvConfig } from "./lib/env.server";
+import { app } from "./app.js";
+import { getEnvConfig } from "./lib/env.server.js";
 dotenv.config();
 const { PORT, CORS_ORIGIN } = getEnvConfig();
 const server = createServer(app);

@@ -1,10 +1,11 @@
-// @ts-expect-error - TanStack Start module types are not fully exported
 import { createStart, createMiddleware } from "@tanstack/react-start";
-import { renderErrorPage } from "./lib/error-page";
+import { renderErrorPage } from "./lib/error-page.js";
+
 const errorMiddleware = createMiddleware().server(
-  async ({ next }: { next: () => Promise<Response> }) => {
+  async ({ request, pathname, context, next, handlerType, serverFnMeta }) => {
     try {
-      return await next();
+      const result = await next();
+      return result;
     } catch (error) {
       if (error != null && typeof error === "object" && "statusCode" in error) {
         throw error;
@@ -17,6 +18,7 @@ const errorMiddleware = createMiddleware().server(
     }
   },
 );
+
 export const startInstance = createStart(() => ({
   requestMiddleware: [errorMiddleware],
 }));

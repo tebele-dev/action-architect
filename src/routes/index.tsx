@@ -1,16 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useStore } from "@/lib/store";
-import { ProgressOverview } from "@/components/app/ProgressOverview";
-import { ActionStepCard } from "@/components/app/ActionStepCard";
-import { PlanInputDialog } from "@/components/app/PlanInputDialog";
-import { ChatbotPanel } from "@/components/app/ChatbotPanel";
-import { Button } from "@/components/ui/button";
+import { useStore } from "@/lib/store.js";
+import { ProgressOverview } from "@/components/app/ProgressOverview.js";
+import { ActionStepCard } from "@/components/app/ActionStepCard.js";
+import { PlanInputDialog } from "@/components/app/PlanInputDialog.js";
+import { ChatbotPanel } from "@/components/app/ChatbotPanel.js";
+import { Button } from "@/components/ui/button.js";
 import { Bot, Sparkles, Inbox, ListFilter } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Action Architect — Plan, prioritize, ship" },
+      { title: "Action Architect — Plan, Prioritize, Traack" },
       {
         name: "description",
         content: "Turn unstructured plans into prioritized action steps and track hours per day.",

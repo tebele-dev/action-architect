@@ -1,6 +1,6 @@
 import express from "express";
-import { prisma } from "../prisma";
-import { jwtAuth, AuthRequest } from "../middleware/auth";
+import { prisma } from "../prisma.js";
+import { jwtAuth, AuthRequest } from "../middleware/auth.js";
 const router = express.Router();
 router.delete("/time-entries/:entryId", jwtAuth, async (req: AuthRequest, res) => {
   try {

@@ -1,5 +1,5 @@
-import { useStore } from "@/lib/store";
-import { Card } from "@/components/ui/card";
+import { useStore } from "@/lib/store.js";
+import { Card } from "@/components/ui/card.js";
 import { CheckCircle2, Clock, Target, TrendingUp } from "lucide-react";
 export function ProgressOverview() {
   const { steps } = useStore();

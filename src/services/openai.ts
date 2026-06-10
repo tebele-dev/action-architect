@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
-import { getErrorMessage, getOpenAIErrorMessage, logError } from "@/lib/logger";
-import { getEnvConfig } from "@/lib/env.server";
+import { getErrorMessage, getOpenAIErrorMessage, logError } from "@/lib/logger.js";
+import { getEnvConfig } from "@/lib/env.server.js";
 dotenv.config();
 const { OPENAI_API_KEY, OPENAI_MODEL, OPENAI_FALLBACK_MODEL } = getEnvConfig();
 const OPENAI_KEY = OPENAI_API_KEY;

@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently --names \"BACKEND,WORKER,FRONTEND\" --prefix-colors \"blue,green,yellow\" --kill-others \"npm run dev:backend\" \"npm run dev:worker\" \"npm run dev:frontend\"",
-    "dev:backend": "node --loader ts-node/esm ./node_modules/ts-node-dev/lib/bin.js --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
-    "dev:worker": "node --loader ts-node/esm ./node_modules/ts-node-dev/lib/bin.js --respawn --transpile-only -r tsconfig-paths/register src/workers/aiWorker.ts",
+    "dev:backend": "tsx watch --tsconfig-paths src/index.ts",
+    "dev:worker": "tsx watch --tsconfig-paths src/workers/aiWorker.ts",
     "dev:frontend": "vite dev",
     "build:frontend": "vite build",
     "preview:frontend": "vite preview",
@@ -71,7 +71,7 @@
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.71.2",
     "react-resizable-panels": "^4.6.5",
-    "recharts": "^2.15.4",
+    "recharts": "^3.6.0",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "sonner": "^2.0.7",
@@ -101,14 +101,21 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^15.15.0",
-    "nitro": "3.0.260429-beta",
+    "nitro": "3.0.260603-beta",
     "prettier": "^3.7.3",
     "prisma": "^5.22.0",
-    "tailwindcss": "^4.2.1",
-    "ts-node-dev": "^2.0.0",
+    "rimraf": "^3.0.2",
     "tsconfig-paths": "^4.1.2",
+    "tsx": "^4.22.4",
     "typescript": "^5.8.3",
     "vite": "^7.3.1",
     "vite-tsconfig-paths": "^6.0.2"
+  },
+  "overrides": {
+    "inflight": "npm:lru-cache@10.0.0",
+    "glob": "11.1.0"
+  },
+  "resolutions": {
+    "glob": "11.1.0"
   }
 }

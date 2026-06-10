@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 import dotenv from "dotenv";
-import { getEnvConfigUnsafe } from "../lib/env.server";
+import { getEnvConfigUnsafe } from "../lib/env.server.js";
 dotenv.config();
 const { SOCKET_SERVER_URL } = getEnvConfigUnsafe();
 const SERVER_URL = SOCKET_SERVER_URL || "http://localhost:3000";

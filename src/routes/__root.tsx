@@ -8,7 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
-import { StoreProvider } from "@/lib/store";
+import { StoreProvider } from "@/lib/store.js";
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
