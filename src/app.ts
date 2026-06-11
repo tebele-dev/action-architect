@@ -3,22 +3,26 @@ import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
-import { getEnvConfigUnsafe } from "./lib/env.server.js";
+import { getEnvConfig } from "./lib/env.server.js";
 import authRoutes from "./routes/-auth.js";
 import plansRoutes from "./routes/-plans.js";
 import stepsRoutes from "./routes/-steps.js";
 import timeRoutes from "./routes/-timeEntries.js";
 import chatRoutes from "./routes/-chat.js";
+
 dotenv.config();
 export const app = express();
-const { CORS_ORIGIN } = getEnvConfigUnsafe();
+
+const { CORS_ORIGIN } = getEnvConfig();
 app.use(helmet());
 app.use(cors({ origin: CORS_ORIGIN || "http://localhost:5173" }));
+
 const limiter = rateLimit({
   windowMs: 60 * 1000,
   max: 100,
   keyGenerator: (req) => String(req.headers.authorization ?? req.ip),
 });
+
 app.use(limiter);
 app.use(express.json());
 app.use("/api/auth", authRoutes);
@@ -27,7 +31,7 @@ app.use("/api/steps", stepsRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api", timeRoutes);
 app.use((err: any, _req: any, _res: any, _next: any) => {
-  console.error(err?.message || err);
   _res.status(500).json({ success: false, error: "Internal server error" });
 });
+
 export default app;

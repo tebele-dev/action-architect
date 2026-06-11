@@ -1,6 +1,6 @@
 import express from "express";
 import { prisma } from "../prisma.js";
-import { chatForStep } from "../services/openai.js";
+import { chatForStep } from "../services/llm.js";
 import { getGuestUser } from "../utils/guestUser.js";
 const router = express.Router();
 router.post("/", async (req, res) => {

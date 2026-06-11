@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
+
 export interface ActionStep {
   id: string;
   step: number;
@@ -8,12 +9,14 @@ export interface ActionStep {
   completed: boolean;
   hoursSpent: number;
 }
+
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
   contextStepId?: string;
 }
+
 interface StoreCtx {
   steps: ActionStep[];
   messages: ChatMessage[];
@@ -31,11 +34,14 @@ interface StoreCtx {
   sendMessage: (content: string) => void;
   clearChat: () => void;
 }
+
 const Ctx = createContext<StoreCtx | null>(null);
 const API_BASE = process.env.VITE_API_BASE_URL ?? "http://localhost:3000";
+
 function resolveApiUrl(path: string) {
   return `${API_BASE}${path}`;
 }
+
 function normalizeStep(step: any): ActionStep {
   return {
     id: step.id,
@@ -47,6 +53,7 @@ function normalizeStep(step: any): ActionStep {
     hoursSpent: Number(step.hoursSpent ?? 0),
   };
 }
+
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(resolveApiUrl(path), {
     headers: {
@@ -62,6 +69,7 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   }
   return body?.data as T;
 }
+
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [steps, setSteps] = useState<ActionStep[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -71,14 +79,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       content: "Hi, I'm your research architect. Select a step or ask me anything about your plan.",
     },
   ]);
+
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [planId, setPlanId] = useState<string | null>(null);
   const [chatSessionId, setChatSessionId] = useState<string | null>(null);
+
   const updateStepLocal = useCallback((updatedStep: ActionStep) => {
     setSteps((current) => current.map((step) => (step.id === updatedStep.id ? updatedStep : step)));
   }, []);
+
   const loadActivePlan = useCallback(async () => {
     try {
       const plans = await fetchJson<
@@ -95,9 +106,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       console.error("Unable to load plan:", error);
     }
   }, []);
+
   useEffect(() => {
     void loadActivePlan();
   }, [loadActivePlan]);
+
   const toggleComplete = useCallback(
     (id: string) => {
       const existing = steps.find((step) => step.id === id);
@@ -117,6 +130,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     [steps, updateStepLocal],
   );
+
   const updateHours = useCallback(
     (id: string, hours: number) => {
       void (async () => {
@@ -133,6 +147,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     [updateStepLocal],
   );
+
   const updateStep = useCallback(
     (id: string, patch: Partial<ActionStep>) => {
       void (async () => {
@@ -155,6 +170,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     [updateStepLocal],
   );
+
   const setPriority = useCallback(
     (id: string, priority: number) => {
       void (async () => {
@@ -171,6 +187,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     [updateStepLocal],
   );
+
   const reorder = useCallback(
     (id: string, dir: "up" | "down") => {
       setSteps((current) => {
@@ -207,6 +224,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     [planId],
   );
+
   const generateFromText = useCallback(async (text: string) => {
     setGenerating(true);
     try {
@@ -225,6 +243,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setGenerating(false);
     }
   }, []);
+
   const sendMessage = useCallback(
     (content: string) => {
       const userMsg: ChatMessage = {
@@ -263,6 +282,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     [selectedStepId, chatSessionId],
   );
+
   const clearChat = useCallback(() => {
     setChatSessionId(null);
     setMessages([
@@ -293,6 +313,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     </Ctx.Provider>
   );
 }
+
 export function useStore() {
   const v = useContext(Ctx);
   if (!v) throw new Error("useStore must be used within StoreProvider");

@@ -1,6 +1,6 @@
 import express from "express";
 import { prisma } from "../prisma.js";
-import { generatePlanFromInput } from "../services/openai.js";
+import { generatePlanFromInput } from "../services/llm.js";
 import { getGuestUser } from "../utils/guestUser.js";
 const router = express.Router();
 function mapStep(step: any) {
@@ -19,7 +19,7 @@ router.post("/generate", async (req, res) => {
     try {
       parsedSteps = JSON.parse(aiResponse);
     } catch {
-      return res.status(500).json({ success: false, error: "OpenAI returned invalid plan data" });
+      return res.status(500).json({ success: false, error: "LLM returned invalid plan data" });
     }
     const plan = await prisma.actionPlan.create({
       data: { userId: user.id, originalInput: input },

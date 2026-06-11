@@ -31,15 +31,15 @@ Then update the values in `.env`:
 - `PORT` (default `3000`)
 - `DATABASE_URL` (Postgres connection string - REQUIRED)
 - `JWT_SECRET` (REQUIRED - minimum 32 characters in production)
-- `OPENAI_API_KEY` (REQUIRED - for AI plan generation)
+- `LLM_API_KEY` (REQUIRED - for AI plan generation)
 - `REDIS_HOST` (default `localhost`)
 - `REDIS_PORT` (default `6379`)
 - `REDIS_PASSWORD` (optional)
 - `SOCKET_SERVER_URL` (default `http://localhost:3000`)
 - `VITE_API_BASE_URL` (default `http://localhost:3000`)
 - `CORS_ORIGIN` (default `http://localhost:5173`)
-- `OPENAI_MODEL` (default `gpt-4`)
-- `OPENAI_FALLBACK_MODEL` (default `gpt-3.5-turbo`)
+- `LLM_MODEL` (default `deepseek-v4-pro`)
+- `LLM_FALLBACK_MODEL` (default `deepseek-v4-flash`)
 - `GUEST_USER_EMAIL` (default `guest@action-architect.local`)
 - `GUEST_USER_NAME` (default `Guest User`)
 - `GUEST_USER_PASSWORD` (default `guest-password`)
@@ -232,6 +232,6 @@ npx prisma migrate dev --name init
 
 ## Troubleshooting
 
-- If OpenAI calls fail, verify `OPENAI_API_KEY` and `OPENAI_MODEL` / `OPENAI_MODEL_FALLBACK`.
+- If LLM calls fail, verify `LLM_API_KEY` and `LLM_MODEL` / `LLM_MODEL_FALLBACK`.
 - If port `3000` is in use, set `PORT` in `.env` or run `PORT=3001 npm run dev`.
 - Use `npm run lint` to validate the TypeScript and React codebase.

@@ -34,16 +34,16 @@ export function getErrorMessage(error: unknown, fallback = "Internal server erro
 export function logError(scope: string, error: unknown): void {
   console.error(`[${scope}]`, serializeError(error));
 }
-export function getOpenAIErrorMessage(body: unknown): string {
-  if (!body || typeof body !== "object") return "OpenAI request failed";
+export function getLlmErrorMessage(body: unknown): string {
+  if (!body || typeof body !== "object") return "LLM request failed";
   const anyBody = body as any;
-  const openaiError = anyBody.error ?? anyBody;
-  if (openaiError && typeof openaiError === "object") {
-    const message = typeof openaiError.message === "string" ? openaiError.message : undefined;
-    const code = typeof openaiError.code === "string" ? openaiError.code : undefined;
+  const llmError = anyBody.error ?? anyBody;
+  if (llmError && typeof llmError === "object") {
+    const message = typeof llmError.message === "string" ? llmError.message : undefined;
+    const code = typeof llmError.code === "string" ? llmError.code : undefined;
     if (message && code) return `${message} (${code})`;
     if (message) return message;
-    if (code) return `OpenAI error: ${code}`;
+    if (code) return `LLM error: ${code}`;
   }
-  return "OpenAI request failed";
+  return "LLM request failed";
 }

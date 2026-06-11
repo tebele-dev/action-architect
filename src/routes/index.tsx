@@ -7,10 +7,11 @@ import { PlanInputDialog } from "@/components/app/PlanInputDialog.js";
 import { ChatbotPanel } from "@/components/app/ChatbotPanel.js";
 import { Button } from "@/components/ui/button.js";
 import { Bot, Sparkles, Inbox, ListFilter } from "lucide-react";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Action Architect — Plan, Prioritize, Traack" },
+      { title: "Action Architect — Plan, Prioritize, Track" },
       {
         name: "description",
         content: "Turn unstructured plans into prioritized action steps and track hours per day.",
@@ -24,7 +25,9 @@ export const Route = createFileRoute("/")({
   }),
   component: Index,
 });
+
 type Filter = "all" | "active" | "done";
+
 function Index() {
   const { steps, setChatOpen } = useStore();
   const [filter, setFilter] = useState<Filter>("all");

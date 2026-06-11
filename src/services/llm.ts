@@ -1,29 +1,33 @@
 import dotenv from "dotenv";
-import { getErrorMessage, getOpenAIErrorMessage, logError } from "@/lib/logger.js";
+import { getErrorMessage, getLlmErrorMessage, logError } from "@/lib/logger.js";
 import { getEnvConfig } from "@/lib/env.server.js";
+
 dotenv.config();
-const { OPENAI_API_KEY, OPENAI_MODEL, OPENAI_FALLBACK_MODEL } = getEnvConfig();
-const OPENAI_KEY = OPENAI_API_KEY;
-interface OpenAIChoice {
+const { LLM_API_KEY, LLM_MODEL, LLM_FALLBACK_MODEL, LLM_API_URL } = getEnvConfig();
+const LLM_KEY = LLM_API_KEY;
+
+interface LlmChoice {
   message: {
     content: string;
   };
 }
-interface OpenAIResponse {
-  choices?: OpenAIChoice[];
+
+interface LlmResponse {
+  choices?: LlmChoice[];
 }
-async function makeOpenAIRequest(
+
+async function makeLlmRequest(
   body: Record<string, unknown>,
   timeoutMs: number,
-): Promise<OpenAIResponse> {
+): Promise<LlmResponse> {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    const res = await fetch(LLM_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_KEY}`,
+        Authorization: `Bearer ${LLM_KEY}`,
       },
       body: JSON.stringify(body),
       signal: controller.signal as any,
@@ -37,16 +41,17 @@ async function makeOpenAIRequest(
       } catch {
         parsed = text;
       }
-      const message = getOpenAIErrorMessage(parsed);
+      const message = getLlmErrorMessage(parsed);
       throw new Error(message);
     }
-    return JSON.parse(text) as OpenAIResponse;
+    return JSON.parse(text) as LlmResponse;
   } catch (err) {
     clearTimeout(id);
     throw err;
   }
 }
-async function requestOpenAI(
+
+async function requestLlm(
   messages: Array<{
     role: string;
     content: string;
@@ -54,29 +59,27 @@ async function requestOpenAI(
   timeoutMs: number,
 ) {
   const requestBody = {
-    model: OPENAI_MODEL,
+    model: LLM_MODEL,
     messages,
     max_tokens: 800,
     temperature: 0.2,
   };
   try {
-    return await makeOpenAIRequest(requestBody, timeoutMs);
+    return await makeLlmRequest(requestBody, timeoutMs);
   } catch (err) {
     const errorMessage = getErrorMessage(err);
-    if (
-      OPENAI_MODEL !== OPENAI_FALLBACK_MODEL &&
-      /model_not_found|does not exist/i.test(errorMessage)
-    ) {
+    if (LLM_MODEL !== LLM_FALLBACK_MODEL && /model_not_found|does not exist/i.test(errorMessage)) {
       logError(
-        "openai",
-        `Model ${OPENAI_MODEL} unavailable, retrying with fallback ${OPENAI_FALLBACK_MODEL}`,
+        "llm",
+        `Model ${LLM_MODEL} unavailable, retrying with fallback ${LLM_FALLBACK_MODEL}`,
       );
-      return await makeOpenAIRequest({ ...requestBody, model: OPENAI_FALLBACK_MODEL }, timeoutMs);
+      return await makeLlmRequest({ ...requestBody, model: LLM_FALLBACK_MODEL }, timeoutMs);
     }
-    throw new Error(`OpenAI request failed: ${errorMessage}`);
+    throw new Error(`LLM request failed: ${errorMessage}`);
   }
 }
-async function requestOpenAIChat(
+
+async function requestLlmChat(
   messages: Array<{
     role: string;
     content: string;
@@ -84,36 +87,35 @@ async function requestOpenAIChat(
   timeoutMs: number,
 ) {
   const requestBody = {
-    model: OPENAI_MODEL,
+    model: LLM_MODEL,
     messages,
     max_tokens: 300,
     temperature: 0.3,
   };
   try {
-    return await makeOpenAIRequest(requestBody, timeoutMs);
+    return await makeLlmRequest(requestBody, timeoutMs);
   } catch (err) {
     const errorMessage = getErrorMessage(err);
-    if (
-      OPENAI_MODEL !== OPENAI_FALLBACK_MODEL &&
-      /model_not_found|does not exist/i.test(errorMessage)
-    ) {
+    if (LLM_MODEL !== LLM_FALLBACK_MODEL && /model_not_found|does not exist/i.test(errorMessage)) {
       logError(
-        "openai",
-        `Model ${OPENAI_MODEL} unavailable, retrying with fallback ${OPENAI_FALLBACK_MODEL}`,
+        "llm",
+        `Model ${LLM_MODEL} unavailable, retrying with fallback ${LLM_FALLBACK_MODEL}`,
       );
-      return await makeOpenAIRequest({ ...requestBody, model: OPENAI_FALLBACK_MODEL }, timeoutMs);
+      return await makeLlmRequest({ ...requestBody, model: LLM_FALLBACK_MODEL }, timeoutMs);
     }
-    throw new Error(`OpenAI request failed: ${errorMessage}`);
+    throw new Error(`LLM request failed: ${errorMessage}`);
   }
 }
+
 export async function generatePlanFromInput(userInput: string, timeoutMs = 30000): Promise<string> {
   const prompt = `Convert this unstructured text into a JSON array of action steps.\nInput: ${userInput}\n\nRequirements:\n- Generate 5-10 steps\n- Each step needs: action (specific task), why (reason), priority (1-5)\n- Return ONLY valid JSON array\n\nFormat example:\n[{"step":1,"action":"Research topic","why":"Understand requirements","priority":1}]`;
-  const response = await requestOpenAI([{ role: "user", content: prompt }], timeoutMs);
-  if (isOpenAIResponse(response) && response.choices?.[0]?.message?.content) {
+  const response = await requestLlm([{ role: "user", content: prompt }], timeoutMs);
+  if (isLlmResponse(response) && response.choices?.[0]?.message?.content) {
     return response.choices[0].message.content;
   }
-  throw new Error("Invalid response structure from OpenAI");
+  throw new Error("Invalid response structure from LLM");
 }
+
 export async function chatForStep(
   stepAction: string,
   stepWhy: string,
@@ -121,20 +123,21 @@ export async function chatForStep(
   timeoutMs = 30000,
 ): Promise<string> {
   const prompt = `Context: User is working on step: ${stepAction}\nReason: ${stepWhy}\nQuestion: ${userQuestion}\n\nProvide helpful, practical advice about this specific task. Keep response under 150 words.`;
-  const response = await requestOpenAIChat([{ role: "user", content: prompt }], timeoutMs);
-  if (isOpenAIResponse(response) && response.choices?.[0]?.message?.content) {
+  const response = await requestLlmChat([{ role: "user", content: prompt }], timeoutMs);
+  if (isLlmResponse(response) && response.choices?.[0]?.message?.content) {
     return response.choices[0].message.content;
   }
-  throw new Error("Invalid response structure from OpenAI");
+  throw new Error("Invalid response structure from LLM");
 }
-function isOpenAIResponse(data: unknown): data is OpenAIResponse {
+
+function isLlmResponse(data: unknown): data is LlmResponse {
   return (
     typeof data === "object" &&
     data !== null &&
     "choices" in data &&
-    Array.isArray((data as OpenAIResponse).choices) &&
-    (data as OpenAIResponse).choices!.length > 0 &&
-    "message" in (data as OpenAIResponse).choices![0] &&
-    "content" in (data as OpenAIResponse).choices![0].message
+    Array.isArray((data as LlmResponse).choices) &&
+    (data as LlmResponse).choices!.length > 0 &&
+    "message" in (data as LlmResponse).choices![0] &&
+    "content" in (data as LlmResponse).choices![0].message
   );
 }

@@ -1,13 +1,16 @@
 import { Worker, Job } from "bullmq";
 import IORedis from "ioredis";
 import dotenv from "dotenv";
-import { generatePlanFromInput } from "../services/openai.js";
+import { generatePlanFromInput } from "../services/llm.js";
 import { prisma } from "../prisma.js";
 import { ioClientNotify } from "../workers/notifyClient.js";
 import { getEnvConfig } from "../lib/env.server.js";
+
 dotenv.config();
+
 const { REDIS_HOST, REDIS_PORT, REDIS_PASSWORD } = getEnvConfig();
 const Redis = (IORedis as any).default || IORedis;
+
 const connection = new Redis({
   host: REDIS_HOST,
   port: REDIS_PORT,
@@ -61,6 +64,7 @@ const worker = new Worker(
     },
   },
 );
+
 worker.on("failed", (job, err) => {
   if (job) {
     console.error(`AI job ${job.id} failed after ${job.attemptsMade} attempts`, err?.message);
