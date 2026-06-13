@@ -15,6 +15,7 @@ import {
   ArrowDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils.js";
+
 const priorityMeta: Record<
   number,
   {
@@ -26,6 +27,7 @@ const priorityMeta: Record<
   2: { label: "P2 · Med", cls: "bg-[oklch(0.96_0.06_70)] text-[oklch(0.42_0.14_70)]" },
   3: { label: "P3 · Low", cls: "bg-[oklch(0.95_0.06_160)] text-[oklch(0.4_0.12_160)]" },
 };
+
 export function ActionStepCard({ s }: { s: ActionStep }) {
   const {
     toggleComplete,
@@ -47,6 +49,7 @@ export function ActionStepCard({ s }: { s: ActionStep }) {
     updateStep(s.id, { action: draftAction.trim() || s.action, why: draftWhy.trim() || s.why });
     setEditing(false);
   };
+
   return (
     <Card
       className={cn(

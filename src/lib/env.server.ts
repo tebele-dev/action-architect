@@ -22,12 +22,14 @@ export interface EnvConfig {
 function validateRequiredEnvVars(): void {
   const required = ["DATABASE_URL", "JWT_SECRET", "LLM_API_KEY"];
   const missing = required.filter((key) => !process.env[key]);
+
   if (missing.length > 0)
     throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
 }
 
 export function getEnvConfig(): EnvConfig {
   validateRequiredEnvVars();
+
   return {
     NODE_ENV: (process.env.NODE_ENV || "development") as "development" | "staging" | "production",
     PORT: Number(process.env.PORT || 3000),

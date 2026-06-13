@@ -5,6 +5,7 @@ import { prisma } from "../prisma.js";
 import { signAccessToken, signRefreshToken } from "../utils/jwt.js";
 import { validateBody } from "../middleware/validators.js";
 import { jwtAuth, AuthRequest } from "../middleware/auth.js";
+
 const router = express.Router();
 const registerSchema = z.object({
   email: z.string().email(),
@@ -12,6 +13,7 @@ const registerSchema = z.object({
   name: z.string().optional(),
 });
 const loginSchema = z.object({ email: z.string().email(), password: z.string() });
+
 router.post("/register", validateBody(registerSchema), async (req, res) => {
   try {
     const { email, password, name } = req.body;
@@ -25,6 +27,7 @@ router.post("/register", validateBody(registerSchema), async (req, res) => {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
+
 router.post("/login", validateBody(loginSchema), async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -39,6 +42,7 @@ router.post("/login", validateBody(loginSchema), async (req, res) => {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
+
 router.get("/me", jwtAuth, async (req: AuthRequest, res) => {
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
@@ -48,4 +52,5 @@ router.get("/me", jwtAuth, async (req: AuthRequest, res) => {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
+
 export default router;

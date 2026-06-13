@@ -2,13 +2,16 @@ import express from "express";
 import { prisma } from "../prisma.js";
 import { generatePlanFromInput } from "../services/llm.js";
 import { getGuestUser } from "../utils/guestUser.js";
+
 const router = express.Router();
+
 function mapStep(step: any) {
   return {
     ...step,
     step: step.stepNumber,
   };
 }
+
 router.post("/generate", async (req, res) => {
   try {
     const { input } = req.body;
@@ -17,7 +20,8 @@ router.post("/generate", async (req, res) => {
     const aiResponse = await generatePlanFromInput(input);
     let parsedSteps: any;
     try {
-      parsedSteps = JSON.parse(aiResponse);
+      const jsonMatch = aiResponse.match(/```json\n([\s\S]*?)\n```/);
+      parsedSteps = JSON.parse(jsonMatch![1]);
     } catch {
       return res.status(500).json({ success: false, error: "LLM returned invalid plan data" });
     }
@@ -44,6 +48,7 @@ router.post("/generate", async (req, res) => {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
+
 router.get("/", async (_req, res) => {
   try {
     const user = await getGuestUser();
@@ -63,6 +68,7 @@ router.get("/", async (_req, res) => {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
+
 router.get("/:planId", async (req, res) => {
   try {
     const plan = await prisma.actionPlan.findUnique({
@@ -81,6 +87,7 @@ router.get("/:planId", async (req, res) => {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
+
 router.get("/:planId/progress", async (req, res) => {
   try {
     const planId = req.params.planId;
@@ -98,4 +105,5 @@ router.get("/:planId/progress", async (req, res) => {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
+
 export default router;

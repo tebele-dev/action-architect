@@ -11,6 +11,7 @@ export function serializeError(error: unknown): string {
     return String(error);
   }
 }
+
 export function getErrorMessage(error: unknown, fallback = "Internal server error"): string {
   if (!error) return fallback;
   if (typeof error === "string") return error;
@@ -31,9 +32,11 @@ export function getErrorMessage(error: unknown, fallback = "Internal server erro
     return fallback;
   }
 }
+
 export function logError(scope: string, error: unknown): void {
   console.error(`[${scope}]`, serializeError(error));
 }
+
 export function getLlmErrorMessage(body: unknown): string {
   if (!body || typeof body !== "object") return "LLM request failed";
   const anyBody = body as any;

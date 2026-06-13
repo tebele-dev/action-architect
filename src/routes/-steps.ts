@@ -1,12 +1,15 @@
 import express from "express";
 import { prisma } from "../prisma.js";
+
 const router = express.Router();
+
 function mapStep(step: any) {
   return {
     ...step,
     step: step.stepNumber,
   };
 }
+
 async function broadcastProgress(app: any, planId: string) {
   if (!app?.io) return;
   const steps = await prisma.step.findMany({ where: { planId } });
@@ -19,6 +22,7 @@ async function broadcastProgress(app: any, planId: string) {
     .to(`plan:${planId}`)
     .emit("progress:update", { planId, completionPercentage, totalHours, updatedStep: steps });
 }
+
 router.put("/:stepId", async (req, res) => {
   try {
     const { action, why, priority, hoursSpent, stepNumber } = req.body;
@@ -35,6 +39,7 @@ router.put("/:stepId", async (req, res) => {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
+
 router.patch("/:stepId/complete", async (req, res) => {
   try {
     const { completed } = req.body;
@@ -48,6 +53,7 @@ router.patch("/:stepId/complete", async (req, res) => {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
+
 router.post("/:stepId/time", async (req, res) => {
   try {
     const { hours, date, notes } = req.body;
@@ -71,4 +77,5 @@ router.post("/:stepId/time", async (req, res) => {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
+
 export default router;

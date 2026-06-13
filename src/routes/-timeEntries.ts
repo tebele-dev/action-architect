@@ -1,7 +1,9 @@
 import express from "express";
 import { prisma } from "../prisma.js";
 import { jwtAuth, AuthRequest } from "../middleware/auth.js";
+
 const router = express.Router();
+
 router.delete("/time-entries/:entryId", jwtAuth, async (req: AuthRequest, res) => {
   try {
     const entryId = Array.isArray(req.params.entryId) ? req.params.entryId[0] : req.params.entryId;
@@ -39,4 +41,5 @@ router.delete("/time-entries/:entryId", jwtAuth, async (req: AuthRequest, res) =
     return res.status(500).json({ success: false, error: err.message });
   }
 });
+
 export default router;

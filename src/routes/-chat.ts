@@ -2,7 +2,9 @@ import express from "express";
 import { prisma } from "../prisma.js";
 import { chatForStep } from "../services/llm.js";
 import { getGuestUser } from "../utils/guestUser.js";
+
 const router = express.Router();
+
 router.post("/", async (req, res) => {
   try {
     const { stepId, message, sessionId } = req.body;
@@ -45,4 +47,5 @@ router.post("/", async (req, res) => {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
+
 export default router;

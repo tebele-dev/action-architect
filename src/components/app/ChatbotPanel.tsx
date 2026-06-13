@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button.js";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet.js";
 import { Bot, Send, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils.js";
+
 export function ChatbotPanel() {
   const {
     chatOpen,
@@ -26,6 +27,7 @@ export function ChatbotPanel() {
     sendMessage(text.trim());
     setText("");
   };
+
   return (
     <Sheet open={chatOpen} onOpenChange={setChatOpen}>
       <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-md">

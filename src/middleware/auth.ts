@@ -1,11 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "../utils/jwt.js";
+
 export interface AuthRequest extends Request {
   user?: {
     id: string;
     email?: string;
   };
 }
+
 export function jwtAuth(req: AuthRequest, res: Response, next: NextFunction) {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ success: false, error: "Missing token" });

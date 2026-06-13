@@ -10,11 +10,13 @@ import {
 import { Button } from "@/components/ui/button.js";
 import { Sparkles, Loader2, Wand2 } from "lucide-react";
 import { useStore } from "@/lib/store.js";
+
 const EXAMPLES = [
   "I want to research how spaced repetition affects retention for medical students.",
   "Launch a small newsletter about climate-tech startups within 6 weeks.",
   "Investigate whether short-form video improves onboarding completion in our app.",
 ];
+
 export function PlanInputDialog({ trigger }: { trigger?: React.ReactNode }) {
   const { generateFromText, generating } = useStore();
   const [open, setOpen] = useState(false);

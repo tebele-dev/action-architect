@@ -1,10 +1,13 @@
 import "./lib/error-capture.js";
 import { consumeLastCapturedError } from "./lib/error-capture.js";
 import { renderErrorPage } from "./lib/error-page.js";
+
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
+
 let serverEntryPromise: Promise<ServerEntry> | undefined;
+
 async function getServerEntry(): Promise<ServerEntry> {
   if (!serverEntryPromise) {
     serverEntryPromise = import("@tanstack/react-start/server-entry").then(
@@ -13,6 +16,7 @@ async function getServerEntry(): Promise<ServerEntry> {
   }
   return serverEntryPromise;
 }
+
 async function normalizeCatastrophicSsrResponse(response: Response): Promise<Response> {
   if (response.status < 500) return response;
   const contentType = response.headers.get("content-type") ?? "";
@@ -27,6 +31,7 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
     headers: { "content-type": "text/html; charset=utf-8" },
   });
 }
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {

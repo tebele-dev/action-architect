@@ -4,7 +4,6 @@ import { getEnvConfig } from "@/lib/env.server.js";
 
 dotenv.config();
 const { LLM_API_KEY, LLM_MODEL, LLM_FALLBACK_MODEL, LLM_API_URL } = getEnvConfig();
-const LLM_KEY = LLM_API_KEY;
 
 interface LlmChoice {
   message: {
@@ -27,7 +26,7 @@ async function makeLlmRequest(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${LLM_KEY}`,
+        Authorization: `Bearer ${LLM_API_KEY}`,
       },
       body: JSON.stringify(body),
       signal: controller.signal as any,
@@ -108,7 +107,31 @@ async function requestLlmChat(
 }
 
 export async function generatePlanFromInput(userInput: string, timeoutMs = 30000): Promise<string> {
-  const prompt = `Convert this unstructured text into a JSON array of action steps.\nInput: ${userInput}\n\nRequirements:\n- Generate 5-10 steps\n- Each step needs: action (specific task), why (reason), priority (1-5)\n- Return ONLY valid JSON array\n\nFormat example:\n[{"step":1,"action":"Research topic","why":"Understand requirements","priority":1}]`;
+  const prompt = `Convert this unstructured text into a JSON array of action steps.
+Input: ${userInput}
+
+Requirements:
+- Generate 5-10 steps
+- Each step needs: step (number), action (specific task), why (reason), priority (1-5)
+- Return ONLY valid JSON array wrapped in a markdown code block with json tag
+
+CRITICAL FORMATTING INSTRUCTIONS:
+1. Start with: \`\`\`json
+2. Then put your JSON array on a new line
+3. End with: \`\`\`
+4. Do NOT add any text before or after the code block
+5. Do NOT include explanatory text, comments, or natural language outside the code block
+
+Example of CORRECT format:
+\`\`\`json
+[{"step":1,"action":"Research topic","why":"Understand requirements","priority":1}]
+\`\`\`
+
+Example of INCORRECT format (DO NOT DO THIS):
+Here is your JSON: \`\`\`json[...]\`\`\` Thanks!
+
+Generate ONLY the code block, nothing else.`;
+
   const response = await requestLlm([{ role: "user", content: prompt }], timeoutMs);
   if (isLlmResponse(response) && response.choices?.[0]?.message?.content) {
     return response.choices[0].message.content;

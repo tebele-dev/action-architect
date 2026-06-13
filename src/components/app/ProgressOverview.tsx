@@ -1,6 +1,7 @@
 import { useStore } from "@/lib/store.js";
 import { Card } from "@/components/ui/card.js";
 import { CheckCircle2, Clock, Target, TrendingUp } from "lucide-react";
+
 export function ProgressOverview() {
   const { steps } = useStore();
   const total = steps.length;
@@ -18,6 +19,7 @@ export function ProgressOverview() {
       sub: "hours per item",
     },
   ];
+
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       {tiles.map((t) => (
