@@ -1,7 +1,7 @@
 import process from "node:process";
 export interface EnvConfig {
   NODE_ENV: "development" | "staging" | "production";
-  PORT: number;
+  BACKEND_PORT: number;
   DATABASE_URL: string;
   REDIS_HOST: string;
   REDIS_PORT: number;
@@ -32,7 +32,7 @@ export function getEnvConfig(): EnvConfig {
 
   return {
     NODE_ENV: (process.env.NODE_ENV || "development") as "development" | "staging" | "production",
-    PORT: Number(process.env.PORT || 3000),
+    BACKEND_PORT: Number(process.env.PORT || 3000),
     DATABASE_URL: process.env.DATABASE_URL!,
     REDIS_HOST: process.env.REDIS_HOST || "localhost",
     REDIS_PORT: Number(process.env.REDIS_PORT || 6379),

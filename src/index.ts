@@ -5,7 +5,7 @@ import { app } from "./app.js";
 import { getEnvConfig } from "./lib/env.server.js";
 
 dotenv.config();
-const { PORT, CORS_ORIGIN } = getEnvConfig();
+const { BACKEND_PORT, CORS_ORIGIN } = getEnvConfig();
 const server = createServer(app);
 
 export const io = new Server(server, {
@@ -52,5 +52,5 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(PORT);
+server.listen(BACKEND_PORT);
 (app as any).io = io;

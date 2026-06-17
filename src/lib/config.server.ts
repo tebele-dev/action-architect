@@ -4,7 +4,7 @@ export function getServerConfig() {
 
   return {
     nodeEnv: envConfig.NODE_ENV,
-    port: envConfig.PORT,
+    port: envConfig.BACKEND_PORT,
     databaseUrl: envConfig.DATABASE_URL,
     jwtSecret: envConfig.JWT_SECRET,
   };

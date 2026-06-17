@@ -28,7 +28,7 @@ cp .env.example .env
 Then update the values in `.env`:
 
 - `NODE_ENV` (development | staging | production)
-- `PORT` (default `3000`)
+- `BACKEND_PORT` (default `3000`)
 - `DATABASE_URL` (Postgres connection string - REQUIRED)
 - `JWT_SECRET` (REQUIRED - minimum 32 characters in production)
 - `LLM_API_KEY` (REQUIRED - for AI plan generation)
@@ -233,5 +233,5 @@ npx prisma migrate dev --name init
 ## Troubleshooting
 
 - If LLM calls fail, verify `LLM_API_KEY` and `LLM_MODEL` / `LLM_MODEL_FALLBACK`.
-- If port `3000` is in use, set `PORT` in `.env` or run `PORT=3001 npm run dev`.
+- If port `3000` is in use, set `BACKEND_PORT` in `.env` or run `BACKEND_PORT=3001 npm run dev`.
 - Use `npm run lint` to validate the TypeScript and React codebase.

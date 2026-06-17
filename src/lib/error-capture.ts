@@ -1,8 +1,8 @@
 let lastCapturedError:
   | {
-    error: unknown;
-    at: number;
-  }
+      error: unknown;
+      at: number;
+    }
   | undefined;
 const TTL_MS = 5000;
 
