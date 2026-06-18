@@ -6,9 +6,9 @@ export interface EnvConfig {
   REDIS_HOST: string;
   REDIS_PORT: number;
   REDIS_PASSWORD: string | undefined;
-  SOCKET_SERVER_URL: string;
+  WS_BASE_URL: string;
   CORS_ORIGIN: string;
-  VITE_API_BASE_URL: string;
+  API_BASE_URL: string;
   JWT_SECRET: string;
   GUEST_USER_EMAIL: string;
   GUEST_USER_NAME: string;
@@ -37,9 +37,9 @@ export function getEnvConfig(): EnvConfig {
     REDIS_HOST: process.env.REDIS_HOST || "localhost",
     REDIS_PORT: Number(process.env.REDIS_PORT || 6379),
     REDIS_PASSWORD: process.env.REDIS_PASSWORD || undefined,
-    SOCKET_SERVER_URL: process.env.SOCKET_SERVER_URL || "http://localhost:3000",
+    WS_BASE_URL: process.env.WS_BASE_URL || "http://localhost:3000",
     CORS_ORIGIN: process.env.CORS_ORIGIN || "http://localhost:5173",
-    VITE_API_BASE_URL: process.env.VITE_API_BASE_URL || "http://localhost:3000",
+    API_BASE_URL: process.env.API_BASE_URL || "http://localhost:3000",
     JWT_SECRET: process.env.JWT_SECRET!,
     GUEST_USER_EMAIL: process.env.GUEST_USER_EMAIL || "guest@action-architect.local",
     GUEST_USER_NAME: process.env.GUEST_USER_NAME || "Guest User",

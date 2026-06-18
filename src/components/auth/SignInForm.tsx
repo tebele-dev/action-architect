@@ -3,12 +3,7 @@ import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
 import { useStore } from "@/lib/store.js";
 
-interface SignInFormProps {
-  onSuccess?: () => void;
-  onError?: (error: string) => void;
-}
-
-export function SignInForm({ onSuccess, onError }: SignInFormProps) {
+export function SignInForm() {
   const { signin, generating } = useStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,22 +23,12 @@ export function SignInForm({ onSuccess, onError }: SignInFormProps) {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
-
     try {
       await signin(email, password);
-
       setEmail("");
       setPassword("");
-
-      if (onSuccess) onSuccess();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Sign in failed";
-      setError(errorMessage);
-      if (onError) onError(errorMessage);
+      setError(err instanceof Error ? err.message : "Sign in failed");
     }
   };
 
@@ -83,12 +68,16 @@ export function SignInForm({ onSuccess, onError }: SignInFormProps) {
       </div>
 
       {error && (
-        <p className="text-sm text-destructive" role="alert">
+        <div className="mb-4 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
           {error}
-        </p>
+        </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={generating || !email || !password}>
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={generating || !email || password.length < 8}
+      >
         {generating ? "Signing in..." : "Sign In"}
       </Button>
     </form>

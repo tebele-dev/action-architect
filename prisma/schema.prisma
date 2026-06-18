@@ -22,7 +22,8 @@ model ActionPlan {
   id            String    @id @default(uuid())
   userId        String
   user          User      @relation(fields: [userId], references: [id])
-  originalInput String    @db.Text
+  name          String    @default("Untitled Plan")   // new: plan name
+  originalInput String?   @db.Text                    // optional now
   status        String    @default("active")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -32,7 +33,7 @@ model ActionPlan {
 model Step {
   id            String      @id @default(uuid())
   planId        String
-  plan          ActionPlan  @relation(fields: [planId], references: [id])
+  plan          ActionPlan  @relation(fields: [planId], references: [id], onDelete: Cascade)
   stepNumber    Int
   action        String      @db.Text
   why           String      @db.Text

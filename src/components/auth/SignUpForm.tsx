@@ -2,13 +2,9 @@ import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button.js";
 import { Input } from "@/components/ui/input.js";
 import { useStore } from "@/lib/store.js";
+import "./SignUpForm.css";
 
-interface SignUpFormProps {
-  onSuccess?: () => void;
-  onError?: (error: string) => void;
-}
-
-export function SignUpForm({ onSuccess, onError }: SignUpFormProps) {
+export function SignUpForm() {
   const { signup, generating } = useStore();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -34,18 +30,8 @@ export function SignUpForm({ onSuccess, onError }: SignUpFormProps) {
     e.preventDefault();
     setError("");
 
-    if (name.trim().length < 2) {
-      setError("Name must be at least 2 characters");
-      return;
-    }
-
     if (!validateEmail(email)) {
       setError("Please enter a valid email address");
-      return;
-    }
-
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
       return;
     }
 
@@ -61,17 +47,12 @@ export function SignUpForm({ onSuccess, onError }: SignUpFormProps) {
 
     try {
       await signup(name, email, password);
-
       setName("");
       setEmail("");
       setPassword("");
       setConfirmPassword("");
-
-      if (onSuccess) onSuccess();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Sign up failed";
-      setError(errorMessage);
-      if (onError) onError(errorMessage);
+      setError(err instanceof Error ? err.message : "Sign up failed");
     }
   };
 
@@ -127,10 +108,13 @@ export function SignUpForm({ onSuccess, onError }: SignUpFormProps) {
         {password && (
           <div className="mt-1">
             <div className="flex items-center gap-2">
-              <div className="flex-1 h-1 bg-gray-200 rounded">
+              {/* Replaced inline style with className */}
+              <div className="password-strength-bar">
                 <div
-                  className="h-full rounded bg-primary transition-all"
-                  style={{ width: `${(getPasswordStrength(password) / 4) * 100}%` }}
+                  className="password-strength-fill"
+                  style={{
+                    width: `${(getPasswordStrength(password) / 4) * 100}%`,
+                  }}
                 />
               </div>
               <span className="text-xs text-muted-foreground">
@@ -162,15 +146,21 @@ export function SignUpForm({ onSuccess, onError }: SignUpFormProps) {
       </div>
 
       {error && (
-        <p className="text-sm text-destructive" role="alert">
+        <div className="mb-4 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
           {error}
-        </p>
+        </div>
       )}
 
       <Button
         type="submit"
         className="w-full"
-        disabled={generating || !name || !email || !password || !confirmPassword}
+        disabled={
+          generating ||
+          !(name.trim().length >= 2) ||
+          !email ||
+          !(password.length >= 8) ||
+          !(confirmPassword.length >= 8)
+        }
       >
         {generating ? "Creating account..." : "Sign Up"}
       </Button>

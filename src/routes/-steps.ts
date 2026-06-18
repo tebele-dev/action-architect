@@ -1,5 +1,6 @@
 import express from "express";
 import { prisma } from "../prisma.js";
+import { jwtAuth, AuthRequest } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -23,16 +24,32 @@ async function broadcastProgress(app: any, planId: string) {
     .emit("progress:update", { planId, completionPercentage, totalHours, updatedStep: steps });
 }
 
-router.put("/:stepId", async (req, res) => {
+async function verifyStepOwnership(stepId: string, userId: string): Promise<boolean> {
+  const step = await prisma.step.findUnique({
+    where: { id: stepId },
+    include: { plan: true },
+  });
+  if (!step) return false;
+  return step.plan.userId === userId;
+}
+
+router.use(jwtAuth);
+
+router.put("/:stepId", async (req: AuthRequest, res) => {
   try {
+    const stepId = req.params.stepId as string;
     const { action, why, priority, hoursSpent, stepNumber } = req.body;
+    const userId = req.user!.id;
+    if (!(await verifyStepOwnership(stepId, userId))) {
+      return res.status(403).json({ success: false, error: "Unauthorized" });
+    }
     const data: any = {};
     if (action !== undefined) data.action = action;
     if (why !== undefined) data.why = why;
     if (priority !== undefined) data.priority = Number(priority);
     if (hoursSpent !== undefined) data.hoursSpent = Number(hoursSpent);
     if (stepNumber !== undefined) data.stepNumber = Number(stepNumber);
-    const step = await prisma.step.update({ where: { id: req.params.stepId }, data });
+    const step = await prisma.step.update({ where: { id: stepId }, data });
     await broadcastProgress(req.app, step.planId);
     return res.json({ success: true, data: mapStep(step) });
   } catch (err: any) {
@@ -40,11 +57,16 @@ router.put("/:stepId", async (req, res) => {
   }
 });
 
-router.patch("/:stepId/complete", async (req, res) => {
+router.patch("/:stepId/complete", async (req: AuthRequest, res) => {
   try {
+    const stepId = req.params.stepId as string;
     const { completed } = req.body;
+    const userId = req.user!.id;
+    if (!(await verifyStepOwnership(stepId, userId))) {
+      return res.status(403).json({ success: false, error: "Unauthorized" });
+    }
     const step = await prisma.step.update({
-      where: { id: req.params.stepId },
+      where: { id: stepId },
       data: { completed: Boolean(completed) },
     });
     await broadcastProgress(req.app, step.planId);
@@ -54,21 +76,26 @@ router.patch("/:stepId/complete", async (req, res) => {
   }
 });
 
-router.post("/:stepId/time", async (req, res) => {
+router.post("/:stepId/time", async (req: AuthRequest, res) => {
   try {
+    const stepId = req.params.stepId as string;
     const { hours, date, notes } = req.body;
+    const userId = req.user!.id;
+    if (!(await verifyStepOwnership(stepId, userId))) {
+      return res.status(403).json({ success: false, error: "Unauthorized" });
+    }
     const entry = await prisma.timeEntry.create({
       data: {
-        stepId: req.params.stepId,
+        stepId,
         hours: Number(hours),
         date: date ? new Date(date) : undefined,
         notes,
       },
     });
-    const entries = await prisma.timeEntry.findMany({ where: { stepId: req.params.stepId } });
+    const entries = await prisma.timeEntry.findMany({ where: { stepId } });
     const total = entries.reduce((acc, e) => acc + e.hours, 0);
     const step = await prisma.step.update({
-      where: { id: req.params.stepId },
+      where: { id: stepId },
       data: { hoursSpent: total },
     });
     await broadcastProgress(req.app, step.planId);

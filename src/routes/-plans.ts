@@ -1,7 +1,7 @@
 import express from "express";
 import { prisma } from "../prisma.js";
 import { generatePlanFromInput } from "../services/llm.js";
-import { getGuestUser } from "../utils/guestUser.js";
+import { jwtAuth, AuthRequest } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -12,11 +12,113 @@ function mapStep(step: any) {
   };
 }
 
-router.post("/generate", async (req, res) => {
+router.use(jwtAuth);
+
+router.get("/", async (req: AuthRequest, res) => {
   try {
-    const { input } = req.body;
+    const userId = req.user!.id;
+    const plans = await prisma.actionPlan.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      include: { steps: true },
+    });
+    return res.json({
+      success: true,
+      data: plans.map((plan) => ({
+        ...plan,
+        steps: plan.steps.map(mapStep),
+      })),
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.get("/:planId", async (req: AuthRequest, res) => {
+  try {
+    const planId = req.params.planId as string;
+    const userId = req.user!.id;
+    const plan = await prisma.actionPlan.findFirst({
+      where: { id: planId, userId },
+      include: { steps: true },
+    });
+    if (!plan) return res.status(404).json({ success: false, error: "Not found" });
+    return res.json({
+      success: true,
+      data: {
+        ...plan,
+        steps: plan.steps.map(mapStep),
+      },
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.post("/", async (req: AuthRequest, res) => {
+  try {
+    const { name } = req.body;
+    if (!name || typeof name !== "string") {
+      return res.status(400).json({ success: false, error: "Plan name is required." });
+    }
+    const userId = req.user!.id;
+    const plan = await prisma.actionPlan.create({
+      data: {
+        userId,
+        name: name.trim(),
+      },
+    });
+    return res.json({ success: true, data: plan });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.put("/:planId", async (req: AuthRequest, res) => {
+  try {
+    const planId = req.params.planId as string;
+    const { name } = req.body;
+    if (!name || typeof name !== "string") {
+      return res.status(400).json({ success: false, error: "Plan name is required." });
+    }
+    const userId = req.user!.id;
+    const result = await prisma.actionPlan.updateMany({
+      where: { id: planId, userId },
+      data: { name: name.trim() },
+    });
+    if (result.count === 0) {
+      return res.status(404).json({ success: false, error: "Plan not found" });
+    }
+    const updated = await prisma.actionPlan.findFirst({
+      where: { id: planId, userId },
+    });
+    return res.json({ success: true, data: updated });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.delete("/:planId", async (req: AuthRequest, res) => {
+  try {
+    const planId = req.params.planId as string;
+    const userId = req.user!.id;
+    const deleted = await prisma.actionPlan.deleteMany({
+      where: { id: planId, userId },
+    });
+    if (deleted.count === 0) {
+      return res.status(404).json({ success: false, error: "Plan not found" });
+    }
+    return res.json({ success: true, data: { id: planId } });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.post("/generate", async (req: AuthRequest, res) => {
+  try {
+    const { input, name } = req.body;
     if (!input) return res.status(400).json({ success: false, error: "Missing input" });
-    const user = await getGuestUser();
+    const userId = req.user!.id;
     const aiResponse = await generatePlanFromInput(input);
     let parsedSteps: any;
     try {
@@ -26,7 +128,11 @@ router.post("/generate", async (req, res) => {
       return res.status(500).json({ success: false, error: "LLM returned invalid plan data" });
     }
     const plan = await prisma.actionPlan.create({
-      data: { userId: user.id, originalInput: input },
+      data: {
+        userId,
+        originalInput: input,
+        name: name?.trim() || "Untitled Plan",
+      },
     });
     const createdSteps = [];
     if (Array.isArray(parsedSteps)) {
@@ -49,48 +155,12 @@ router.post("/generate", async (req, res) => {
   }
 });
 
-router.get("/", async (_req, res) => {
+router.get("/:planId/progress", async (req: AuthRequest, res) => {
   try {
-    const user = await getGuestUser();
-    const plans = await prisma.actionPlan.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
-      include: { steps: true },
-    });
-    return res.json({
-      success: true,
-      data: plans.map((plan) => ({
-        ...plan,
-        steps: plan.steps.map(mapStep),
-      })),
-    });
-  } catch (err: any) {
-    return res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-router.get("/:planId", async (req, res) => {
-  try {
-    const plan = await prisma.actionPlan.findUnique({
-      where: { id: req.params.planId },
-      include: { steps: true },
-    });
-    if (!plan) return res.status(404).json({ success: false, error: "Not found" });
-    return res.json({
-      success: true,
-      data: {
-        ...plan,
-        steps: plan.steps.map(mapStep),
-      },
-    });
-  } catch (err: any) {
-    return res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-router.get("/:planId/progress", async (req, res) => {
-  try {
-    const planId = req.params.planId;
+    const planId = req.params.planId as string;
+    const userId = req.user!.id;
+    const plan = await prisma.actionPlan.findFirst({ where: { id: planId, userId } });
+    if (!plan) return res.status(404).json({ success: false, error: "Plan not found" });
     const steps = await prisma.step.findMany({ where: { planId } });
     const totalSteps = steps.length;
     const completedSteps = steps.filter((s) => s.completed).length;

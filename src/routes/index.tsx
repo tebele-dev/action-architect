@@ -30,17 +30,11 @@ export const Route = createFileRoute("/")({
 function Index() {
   const { signout, generating, user, setChatOpen } = useStore();
   const [activeForm, setActiveForm] = useState<"signin" | "signup">("signin");
-  const [authError, setAuthError] = useState<string | null>(null);
 
   const isAuthenticated = !!user;
 
-  const handleAuthError = (error: string) => {
-    setAuthError(error);
-  };
-
   const handleSignOut = () => {
     signout();
-    setAuthError(null);
   };
 
   if (!isAuthenticated) {
@@ -58,10 +52,9 @@ function Index() {
           <p className="mb-6 text-center text-sm text-muted-foreground">Plan, prioritize, track</p>
 
           <div className="mb-4 flex gap-2 border-b border-border">
-            <button
+            <Button
               onClick={() => {
                 setActiveForm("signin");
-                setAuthError(null);
               }}
               className={`flex-1 pb-2 text-sm font-medium transition ${
                 activeForm === "signin"
@@ -71,11 +64,10 @@ function Index() {
                 `}
             >
               Sign In
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => {
                 setActiveForm("signup");
-                setAuthError(null);
               }}
               className={`flex-1 pb-2 text-sm font-medium transition ${
                 activeForm === "signup"
@@ -85,20 +77,10 @@ function Index() {
                 `}
             >
               Sign Up
-            </button>
+            </Button>
           </div>
 
-          {authError && (
-            <div className="mb-4 p-3 bg-destructive/10 text-destructive rounded-md text-sm">
-              {authError}
-            </div>
-          )}
-
-          {activeForm === "signin" ? (
-            <SignInForm onSuccess={() => setAuthError(null)} onError={handleAuthError} />
-          ) : (
-            <SignUpForm onSuccess={() => setAuthError(null)} onError={handleAuthError} />
-          )}
+          {activeForm === "signin" ? <SignInForm /> : <SignUpForm />}
 
           {generating && (
             <div className="mt-4 text-center text-sm text-muted-foreground">Authenticating...</div>

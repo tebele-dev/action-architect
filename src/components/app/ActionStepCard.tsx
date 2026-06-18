@@ -15,6 +15,7 @@ import {
   ArrowDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils.js";
+import { Textarea } from "../ui/textarea.js";
 
 const priorityMeta: Record<
   number,
@@ -91,7 +92,7 @@ export function ActionStepCard({ s }: { s: ActionStep }) {
           {editing ? (
             <div className="mt-2 space-y-2">
               <Input value={draftAction} onChange={(e) => setDraftAction(e.target.value)} />
-              <textarea
+              <Textarea
                 value={draftWhy}
                 onChange={(e) => setDraftWhy(e.target.value)}
                 className="w-full resize-none rounded-md border border-input bg-background p-2 text-sm"

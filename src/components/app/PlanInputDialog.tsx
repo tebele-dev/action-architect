@@ -8,6 +8,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog.js";
 import { Button } from "@/components/ui/button.js";
+import { Input } from "@/components/ui/input.js";
 import { Sparkles, Loader2, Wand2 } from "lucide-react";
 import { useStore } from "@/lib/store.js";
 
@@ -21,12 +22,16 @@ export function PlanInputDialog({ trigger }: { trigger?: React.ReactNode }) {
   const { generateFromText, generating } = useStore();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
+  const [planName, setPlanName] = useState("");
+
   const submit = async () => {
     if (!text.trim()) return;
-    await generateFromText(text);
+    await generateFromText(text, planName.trim() || undefined);
     setOpen(false);
     setText("");
+    setPlanName("");
   };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -48,6 +53,14 @@ export function PlanInputDialog({ trigger }: { trigger?: React.ReactNode }) {
             prioritized steps.
           </DialogDescription>
         </DialogHeader>
+
+        <Input
+          placeholder="Plan name (optional)"
+          value={planName}
+          onChange={(e) => setPlanName(e.target.value)}
+          className="mb-2"
+        />
+
         <textarea
           autoFocus
           value={text}
@@ -55,6 +68,7 @@ export function PlanInputDialog({ trigger }: { trigger?: React.ReactNode }) {
           placeholder="e.g. I want to validate whether AI tutors can teach high-school physics better than..."
           className="min-h-40 w-full resize-none rounded-md border border-input bg-background p-3 text-sm leading-relaxed outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
         />
+
         <div className="flex flex-wrap gap-2">
           {EXAMPLES.map((ex) => (
             <button
@@ -66,6 +80,7 @@ export function PlanInputDialog({ trigger }: { trigger?: React.ReactNode }) {
             </button>
           ))}
         </div>
+
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setOpen(false)} disabled={generating}>
             Cancel

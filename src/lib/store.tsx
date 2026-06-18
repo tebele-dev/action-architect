@@ -17,6 +17,13 @@ export interface ChatMessage {
   contextStepId?: string;
 }
 
+export interface Plan {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface AuthResponse {
   id: string;
   name: string;
@@ -29,6 +36,8 @@ interface LoginResponse {
 }
 
 interface StoreCtx {
+  plans: Plan[];
+  currentPlanId: string | null;
   steps: ActionStep[];
   messages: ChatMessage[];
   selectedStepId: string | null;
@@ -36,6 +45,7 @@ interface StoreCtx {
   generating: boolean;
   user: AuthResponse | null;
   accessToken: string | null;
+
   setSelectedStepId: (id: string | null) => void;
   setChatOpen: (open: boolean) => void;
   toggleComplete: (id: string) => void;
@@ -43,19 +53,24 @@ interface StoreCtx {
   updateStep: (id: string, patch: Partial<ActionStep>) => void;
   setPriority: (id: string, priority: number) => void;
   reorder: (id: string, dir: "up" | "down") => void;
-  generateFromText: (text: string) => Promise<void>;
+  generateFromText: (text: string, planName?: string) => Promise<void>;
   sendMessage: (content: string) => void;
   clearChat: () => void;
   signup: (name: string, email: string, password: string) => Promise<void>;
   signin: (email: string, password: string) => Promise<void>;
   signout: () => void;
+  createPlan: (name: string) => Promise<string>;
+  updatePlan: (id: string, name: string) => Promise<void>;
+  deletePlan: (id: string) => Promise<void>;
+  setCurrentPlan: (id: string | null) => Promise<void>;
+  loadPlans: () => Promise<void>;
 }
 
 const Ctx = createContext<StoreCtx | null>(null);
-const API_BASE = process.env.VITE_API_BASE_URL ?? "http://localhost:3000";
+const API_BASE_URL = process.env.API_BASE_URL ?? "http://localhost:3000";
 
 function resolveApiUrl(path: string) {
-  return `${API_BASE}${path}`;
+  return `${API_BASE_URL}${path}`;
 }
 
 function normalizeStep(step: any): ActionStep {
@@ -73,8 +88,7 @@ function normalizeStep(step: any): ActionStep {
 class ApiClient {
   private getToken(): string | null {
     try {
-      const token = localStorage.getItem("authToken");
-      return token || null;
+      return localStorage.getItem("authToken") || null;
     } catch {
       return null;
     }
@@ -119,10 +133,7 @@ class ApiClient {
   }
 
   async get<T>(path: string, options?: { requiresAuth?: boolean }): Promise<T> {
-    return this.request<T>(path, {
-      method: "GET",
-      ...options,
-    });
+    return this.request<T>(path, { method: "GET", ...options });
   }
 
   async post<T>(path: string, data?: any, options?: { requiresAuth?: boolean }): Promise<T> {
@@ -150,16 +161,15 @@ class ApiClient {
   }
 
   async delete<T>(path: string, options?: { requiresAuth?: boolean }): Promise<T> {
-    return this.request<T>(path, {
-      method: "DELETE",
-      ...options,
-    });
+    return this.request<T>(path, { method: "DELETE", ...options });
   }
 }
 
 const apiClient = new ApiClient();
 
 export function StoreProvider({ children }: { children: ReactNode }) {
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
   const [steps, setSteps] = useState<ActionStep[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -168,11 +178,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       content: "Hi, I'm your research architect. Select a step or ask me anything about your plan.",
     },
   ]);
-
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [planId, setPlanId] = useState<string | null>(null);
   const [chatSessionId, setChatSessionId] = useState<string | null>(null);
   const [user, setUser] = useState<AuthResponse | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -192,29 +200,101 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const updateStepLocal = useCallback((updatedStep: ActionStep) => {
-    setSteps((current) => current.map((step) => (step.id === updatedStep.id ? updatedStep : step)));
-  }, []);
+  const loadPlans = useCallback(async () => {
+    if (!user) return;
+    try {
+      const data = await apiClient.get<Array<Plan & { steps: any[] }>>("/api/plans");
+      const planList = data.map((p) => ({
+        id: p.id,
+        name: p.name,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+      }));
+      setPlans(planList);
 
-  const loadActivePlan = useCallback(async () => {
-    const plans = await apiClient.get<
-      Array<{
-        id: string;
-        steps: any[];
-      }>
-    >("/api/plans");
-
-    if (plans.length > 0) {
-      setPlanId(plans[0].id);
-      setSteps(plans[0].steps.map(normalizeStep));
+      if (data.length > 0) {
+        const currentExists = data.some((p) => p.id === currentPlanId);
+        let targetPlanId = currentPlanId;
+        if (!currentPlanId || !currentExists) {
+          targetPlanId = data[0].id;
+          setCurrentPlanId(targetPlanId);
+        }
+        const chosen = data.find((p) => p.id === targetPlanId);
+        if (chosen) {
+          setSteps(chosen.steps.map(normalizeStep));
+        } else {
+          setSteps([]);
+        }
+      } else {
+        setCurrentPlanId(null);
+        setSteps([]);
+      }
+    } catch (error) {
+      console.error("Failed to load plans:", error);
     }
-  }, []);
+  }, [user, currentPlanId]);
 
   useEffect(() => {
     if (user) {
-      void loadActivePlan().catch(() => {});
+      loadPlans();
     }
-  }, [user, loadActivePlan]);
+  }, [user, loadPlans]);
+
+  const loadStepsForPlan = useCallback(async (planId: string) => {
+    try {
+      const plan = await apiClient.get<{ steps: any[] }>(`/api/plans/${planId}`);
+      setSteps(plan.steps.map(normalizeStep));
+    } catch (error) {
+      console.error("Failed to load steps for plan:", error);
+    }
+  }, []);
+
+  const createPlan = useCallback(async (name: string): Promise<string> => {
+    const plan = await apiClient.post<Plan>("/api/plans", { name });
+    setPlans((prev) => [...prev, plan]);
+    setCurrentPlanId(plan.id);
+    setSteps([]);
+    return plan.id;
+  }, []);
+
+  const updatePlan = useCallback(async (id: string, name: string) => {
+    const updated = await apiClient.put<Plan>(`/api/plans/${id}`, { name });
+    setPlans((prev) => prev.map((p) => (p.id === id ? updated : p)));
+  }, []);
+
+  const deletePlan = useCallback(
+    async (id: string) => {
+      await apiClient.delete(`/api/plans/${id}`);
+      setPlans((prev) => prev.filter((p) => p.id !== id));
+      if (currentPlanId === id) {
+        const remaining = plans.filter((p) => p.id !== id);
+        if (remaining.length > 0) {
+          setCurrentPlanId(remaining[0].id);
+          await loadStepsForPlan(remaining[0].id);
+        } else {
+          setCurrentPlanId(null);
+          setSteps([]);
+        }
+      }
+    },
+    [currentPlanId, plans, loadStepsForPlan],
+  );
+
+  const setCurrentPlan = useCallback(
+    async (id: string | null) => {
+      setCurrentPlanId(id);
+      if (id) {
+        await loadStepsForPlan(id);
+      } else {
+        setSteps([]);
+      }
+    },
+    [loadStepsForPlan],
+  );
+
+  const updateStepLocal = useCallback((updatedStep: ActionStep) => {
+    setSteps((current) => current.map((step) => (step.id === updatedStep.id ? updatedStep : step)));
+  }, []);
 
   const toggleComplete = useCallback(
     (id: string) => {
@@ -232,9 +312,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const updateHours = useCallback(
     (id: string, hours: number) => {
       void apiClient
-        .put<any>(`/api/steps/${id}`, {
-          hoursSpent: Math.max(0, hours),
-        })
+        .put<any>(`/api/steps/${id}`, { hoursSpent: Math.max(0, hours) })
         .then((updated) => updateStepLocal(normalizeStep(updated)))
         .catch(() => {});
     },
@@ -267,60 +345,60 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [updateStepLocal],
   );
 
-  const reorder = useCallback(
-    (id: string, dir: "up" | "down") => {
-      setSteps((current) => {
-        const sorted = [...current].sort((a, b) => a.priority - b.priority || a.step - b.step);
-        const idx = sorted.findIndex((step) => step.id === id);
-        if (idx < 0) return current;
-        const swapIndex = dir === "up" ? idx - 1 : idx + 1;
-        if (swapIndex < 0 || swapIndex >= sorted.length) return current;
-        const first = sorted[idx];
-        const second = sorted[swapIndex];
-        const nextSteps = sorted.map((step) => {
-          if (step.id === first.id) return { ...step, step: second.step };
-          if (step.id === second.id) return { ...step, step: first.step };
-          return step;
-        });
-        if (planId) {
-          void Promise.all([
-            apiClient.put<any>(`/api/steps/${first.id}`, { stepNumber: second.step }),
-            apiClient.put<any>(`/api/steps/${second.id}`, { stepNumber: first.step }),
-          ]).catch(() => {});
-        }
-        return nextSteps;
+  const reorder = useCallback((id: string, dir: "up" | "down") => {
+    setSteps((current) => {
+      const sorted = [...current].sort((a, b) => a.priority - b.priority || a.step - b.step);
+      const idx = sorted.findIndex((step) => step.id === id);
+      if (idx < 0) return current;
+      const swapIndex = dir === "up" ? idx - 1 : idx + 1;
+      if (swapIndex < 0 || swapIndex >= sorted.length) return current;
+      const first = sorted[idx];
+      const second = sorted[swapIndex];
+      const nextSteps = sorted.map((step) => {
+        if (step.id === first.id) return { ...step, step: second.step };
+        if (step.id === second.id) return { ...step, step: first.step };
+        return step;
       });
+      void Promise.all([
+        apiClient.put<any>(`/api/steps/${first.id}`, { stepNumber: second.step }),
+        apiClient.put<any>(`/api/steps/${second.id}`, { stepNumber: first.step }),
+      ]).catch(() => {});
+      return nextSteps;
+    });
+  }, []);
+
+  const generateFromText = useCallback(
+    async (text: string, planName?: string) => {
+      setGenerating(true);
+      try {
+        const result = await apiClient.post<{
+          planId: string;
+          steps: any[];
+        }>("/api/plans/generate", { input: text, name: planName });
+        await loadPlans();
+      } finally {
+        setGenerating(false);
+      }
     },
-    [planId],
+    [loadPlans],
   );
 
   const signup = useCallback(
     async (name: string, email: string, password: string): Promise<void> => {
       setGenerating(true);
-
       try {
         const userData = await apiClient.post<AuthResponse>(
           "/api/auth/register",
-          {
-            name,
-            email,
-            password,
-          },
+          { name, email, password },
           { requiresAuth: false },
         );
-
         const loginData = await apiClient.post<LoginResponse>(
           "/api/auth/login",
-          {
-            email,
-            password,
-          },
+          { email, password },
           { requiresAuth: false },
         );
-
         localStorage.setItem("authToken", loginData.accessToken);
         setAccessToken(loginData.accessToken);
-
         localStorage.setItem("authUser", JSON.stringify(userData));
         setUser(userData);
       } catch (error) {
@@ -340,20 +418,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     try {
       const loginData = await apiClient.post<LoginResponse>(
         "/api/auth/login",
-        {
-          email,
-          password,
-        },
+        { email, password },
         { requiresAuth: false },
       );
-
       localStorage.setItem("authToken", loginData.accessToken);
       setAccessToken(loginData.accessToken);
-
-      const userData = await apiClient.get<AuthResponse>("/api/auth/me", {
-        requiresAuth: true,
-      });
-
+      const userData = await apiClient.get<AuthResponse>("/api/auth/me", { requiresAuth: true });
       localStorage.setItem("authUser", JSON.stringify(userData));
       setUser(userData);
     } catch (error) {
@@ -371,8 +441,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("authUser");
     setUser(null);
     setAccessToken(null);
-    setPlanId(null);
+    setCurrentPlanId(null);
     setSteps([]);
+    setPlans([]);
     setChatSessionId(null);
     setMessages([
       {
@@ -382,21 +453,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       },
     ]);
     setSelectedStepId(null);
-  }, []);
-
-  const generateFromText = useCallback(async (text: string) => {
-    setGenerating(true);
-    try {
-      const result = await apiClient.post<{
-        planId: string;
-        steps: any[];
-      }>("/api/plans/generate", { input: text });
-
-      setPlanId(result.planId);
-      setSteps(result.steps.map(normalizeStep));
-    } finally {
-      setGenerating(false);
-    }
   }, []);
 
   const sendMessage = useCallback(
@@ -446,6 +502,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider
       value={{
+        plans,
+        currentPlanId,
         steps,
         messages,
         selectedStepId,
@@ -466,6 +524,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         signin,
         signup,
         signout,
+        createPlan,
+        updatePlan,
+        deletePlan,
+        setCurrentPlan,
+        loadPlans,
       }}
     >
       {children}
